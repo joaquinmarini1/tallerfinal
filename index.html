@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Juego</title>
+    
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #000000;
+            margin: 0;
+            font-family: sans-serif;
+        }
+
+        #game-container {
+            width: 1512px;
+            height: 982px;
+            
+            /* 1. Esta es la primera imagen que se carga */
+            background-image: url('img/Intro.png'); 
+            
+            background-size: cover;
+            position: relative; 
+            
+            /* 2. Transición suave (fade) de medio segundo
+                  cuando cambiemos la imagen de fondo */
+            transition: background-image 0.5s ease-in-out;
+        }
+        
+        /* (Estilos del botón de usuario eliminados) */
+
+    </style>
+</head>
+<body>
+
+    <div id="game-container">
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+        
+            const gameContainer = document.getElementById('game-container');
+            
+            // Esta variable controla si podemos presionar "S"
+            let canPressS = false;
+
+            // --- Parte 1: Pantalla de "Intro.png" ---
+            // Espera 4 segundos
+            setTimeout(() => {
+                
+                // --- Parte 2: Pantalla de "Titulo.png" ---
+                if (gameContainer) {
+                    // Cambia la imagen de fondo
+                    gameContainer.style.backgroundImage = "url('img/Titulo.png')";
+                }
+                
+                // Ahora sí permitimos que el usuario presione "S"
+                canPressS = true;
+
+            }, 4000); // 4000ms = 4 segundos
+
+            
+            // --- Parte 3: Escuchar la tecla "S" ---
+            document.addEventListener('keydown', (event) => {
+            
+                // Comprueba si ya estamos en la pantalla de título
+                // y si la tecla presionada es "s" (mayúscula o minúscula)
+                if (canPressS && (event.key === 's' || event.key === 'S')) {
+                    
+                    // --- Parte 4: Ir al escritorio ---
+                    window.location.href = 'desktop.html';
+                }
+            });
+        
+        });
+    </script>
+
+</body>
+</html>

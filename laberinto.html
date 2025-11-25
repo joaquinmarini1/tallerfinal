@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laberinto del Núcleo 1</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+    
+    <style>
+        /* (Todo tu CSS va aquí, sin cambios) */
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #000000;
+            margin: 0;
+            font-family: 'VT323', monospace;
+        }
+
+        #game-container {
+            width: 1512px;
+            height: 982px;
+            background-image: url('img/MacBook Pro 14_ - 2.png'); 
+            background-size: cover;
+            position: relative; 
+            overflow: hidden; 
+        }
+
+        #maze-frame-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        
+        #maze-frame-container > img {
+            display: block;
+        }
+
+        #jugador {
+            position: absolute;
+            width: 50px; 
+            height: 50px;
+            transition: top 0.1s linear, left 0.1s linear;
+            z-index: 10;
+        }
+
+        .coleccionable {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+            z-index: 5;
+        }
+        .coleccionable.recolectado {
+            opacity: 0;
+            transform: scale(0.5);
+            pointer-events: none;
+        }
+        
+        .help-cubo {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            z-index: 6;
+            transition: opacity 0.3s ease-out;
+        }
+        .help-cubo.activado {
+            opacity: 0.7;
+        }
+
+        .popup-texto {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 100;
+            display: none;
+        }
+        
+        .temporal-bloque {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            z-index: 6; 
+            transition: opacity 0.5s ease-out;
+        }
+        .temporal-bloque.desbloqueado {
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        #puerta {
+            position: absolute;
+            width: 100px;
+            height: 50px;
+            z-index: 5;
+        }
+        
+        .byte-aspecto-laberinto {
+            position: absolute;
+            top: 400px;
+            left: 760px;
+            width: 222px;
+            height: 335px;
+            z-index: 90;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateX(50px) scale(2);
+            transition: opacity 0.4s ease-out, transform 0.4s ease-out, visibility 0.4s;
+            object-fit: contain;
+            display: block;
+        }
+        .byte-aspecto-laberinto.visible {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(0) scale(2);
+        }
+        
+        #byte-dialogue-bubble {
+            position: absolute;
+            top: 233px;
+            left: 475px;
+            width: 241px;
+            height: 250px;
+            padding: 20px;
+            box-sizing: border-box;
+            background-image: url('img/Burbuja 1.png');
+            background-size: 100% 100%;
+            z-index: 20;
+            opacity: 0;
+            visibility: hidden;
+            transform: scale(1.2);
+            transform-origin: center center;
+            transition: opacity 0.3s ease-out, transform 0.3s ease-out, visibility 0.3s;
+        }
+        #byte-dialogue-bubble.visible {
+            opacity: 1;
+            visibility: visible;
+            transform: scale(1.4);
+        }
+        
+        #dialogue-text {
+            margin: 0;
+            font-size: 26px;
+            color: #000000;
+            line-height: 1.2;
+            text-align: left;
+            white-space: normal;
+            overflow: hidden; 
+            border-right: 3px solid #000;
+            animation: blink-caret .75s step-end infinite;
+        }
+        
+        #byte-help-bubble {
+            position: absolute;
+            top: 233px;
+            left: 475px;
+            width: 241px;
+            height: 265px;
+            padding: 20px;
+            box-sizing: border-box;
+            background-image: url('img/Burbuja 1.png');
+            background-size: 100% 100%;
+            z-index: 91;
+            display: none; 
+            transform: scale(1.2);
+            transform-origin: center center;
+        }
+        
+        #help-text {
+            margin: 0;
+            font-size: 26px;
+            color: #000000;
+            line-height: 1.2;
+            text-align: left;
+            white-space: normal;
+        }
+
+        #contador-container {
+            position: absolute;
+            top: 55px;
+            left: 927px;
+            width: 150px;
+            height: 70px;
+            background-image: url('img/contador.png');
+            background-size: 100% 100%;
+            background-repeat: no-repeat;
+            z-index: 15;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        #contador-text {
+            font-family: 'VT323', monospace;
+            font-size: 32px;
+            color: #FFFFFF;
+            margin: 0;
+            margin-left: 15px;
+            margin-top: -8px;
+            font-weight: bold;
+        }
+
+        @keyframes blink-caret {
+            from, to { border-color: transparent }
+            50% { border-color: #000; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="game-container">
+        
+        <div id="maze-frame-container">
+            
+            <img src="img/Frame 105.png" alt="Laberinto">
+            
+            <div id="contador-container">
+                <p id="contador-text">0/3</p>
+            </div>
+            
+            <img id="jugador" src="img/jugador.png" alt="Jugador">
+            
+            <img id="estrella-1" class="coleccionable" src="img/estrella.png" alt="Estrella">
+            <img id="estrella-2" class="coleccionable" src="img/estrella.png" alt="Estrella">
+            <img id="estrella-3" class="coleccionable" src="img/estrella.png" alt="Estrella">
+            <img id="libro-1" class="coleccionable" src="img/libro.png" alt="Libro">
+            <img id="libro-2" class="coleccionable" src="img/libro.png" alt="Libro">
+            <img id="libro-3" class="coleccionable" src="img/libro.png" alt="Libro">
+            
+            <img id="help-cubo-1" class="help-cubo" src="img/cubo.png" alt="Cubo Ayuda">
+            <img id="help-cubo-2" class="help-cubo" src="img/cubo.png" alt="Cubo Ayuda">
+            
+            <img id="bloque-1" class="temporal-bloque" src="img/cubo.png" alt="Cubo">
+            <img id="bloque-2" class="temporal-bloque" src="img/cubo.png" alt="Cubo">
+            
+            <img id="puerta" src="img/puerta.png" alt="Puerta">
+            
+        </div>
+        
+        <img id="texto-1" class="popup-texto" src="img/texto1.png" alt="Información 1">
+        <img id="texto-2" class="popup-texto" src="img/texto2.png" alt="Información 2">
+        <img id="texto-3" class="popup-texto" src="img/texto3.png" alt="Información 3">
+
+        <img id="byte-aspecto-1-maze" class="byte-aspecto-laberinto" src="img/byte-aspecto-1.PNG" alt="Aspecto 1">
+        <img id="byte-aspecto-2-maze" class="byte-aspecto-laberinto" src="img/byte-aspecto-2.PNG" alt="Aspecto 2">
+        
+        <div id="byte-dialogue-bubble"> <p id="dialogue-text"></p>
+        </div>
+        <div id="byte-help-bubble"> <p id="help-text"></p>
+        </div>
+
+    </div>
+
+    <script>
+        // --- 1. CONFIGURACIÓN DEL LABERINTO ---
+        
+        const mapaLaberinto = [
+            [1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,1,1,1,1,1,1,1], // Fila 0
+            [1,0,0,0,0,0,0,0,0,0,0,0,1,0,0,1,0,0,0,0,0,1], // Fila 1
+            [1,0,0,0,0,1,1,1,1,0,0,0,1,0,0,1,0,0,0,0,0,1], // Fila 2
+            [1,1,1,0,0,0,1,0,0,0,1,1,1,0,0,0,0,0,1,0,0,1], // Fila 3
+            [0,0,1,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,0,0,1], // Fila 4
+            [0,0,0,0,0,1,1,1,0,0,0,0,1,0,0,0,0,0,0,0,0,1], // Fila 5
+            [1,0,0,0,0,1,0,0,0,0,1,1,1,1,1,0,0,0,0,0,0,1], // Fila 6
+            [1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1], // Fila 7
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1], // Fila 8
+            [1,0,0,1,1,1,0,0,0,0,1,0,0,1,1,1,1,1,1,0,0,1], // Fila 9
+            [1,0,0,1,0,0,0,0,1,1,1,0,0,1,0,0,0,0,0,0,0,1], // Fila 10
+            [1,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,1,0,0,0,0,1], // Fila 11
+            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]  // Fila 12
+        ];
+        
+        const TAMAÑO_BLOQUE = 50; 
+        
+        let jugadorPos = { fila: 4, col: 0 };
+
+        const estrellas = [
+            { id: 'estrella-1', fila: 1, col: 11, recolectado: false },
+            { id: 'estrella-2', fila: 11, col: 1, recolectado: false },
+            { id: 'estrella-3', fila: 11, col: 14, recolectado: false }
+        ];
+        const libros = [
+            { id: 'libro-1', fila: 1, col: 1, recolectado: false },
+            { id: 'libro-2', fila: 11, col: 4, recolectado: false },
+            { id: 'libro-3', fila: 1, col: 20, recolectado: false }
+        ];
+        
+        const helpCubos = [
+            { id: 'help-cubo-1', fila: 8, col: 4, activado: false },
+            { id: 'help-cubo-2', fila: 10, col: 16, activado: false }
+        ];
+        
+        const bloquesTemporales = [
+            { id: 'bloque-1', fila: 0, col: 13, desbloqueado: false },
+            { id: 'bloque-2', fila: 0, col: 14, desbloqueado: false }
+        ];
+
+        // --- 2. LÓGICA DEL JUEGO ---
+
+        let juegoPausado = true;
+        let aspectoId = '1';
+        let dialogoFinalActivo = false; // <-- Variable para el diálogo final
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const jugadorImg = document.getElementById('jugador');
+            const mazeContainer = document.getElementById('maze-frame-container');
+            
+            const texto1 = document.getElementById('texto-1');
+            const texto2 = document.getElementById('texto-2');
+            const texto3 = document.getElementById('texto-3');
+            
+            const byteAspecto1Maze = document.getElementById('byte-aspecto-1-maze');
+            const byteAspecto2Maze = document.getElementById('byte-aspecto-2-maze');
+            const dialogueBubble = document.getElementById('byte-dialogue-bubble');
+            const dialogueText = document.getElementById('dialogue-text');
+            const helpBubble = document.getElementById('byte-help-bubble');
+            const helpText = document.getElementById('help-text');
+            
+            const urlParams = new URLSearchParams(window.location.search);
+            aspectoId = urlParams.get('aspecto') || '1'; 
+            
+            actualizarPosicionVisual(); 
+            
+            // --- SECUENCIA DE DIÁLOGO DE BIENVENIDA ---
+            setTimeout(() => {
+                if (aspectoId === '1') {
+                    if(byteAspecto1Maze) byteAspecto1Maze.classList.add('visible');
+                } else if (aspectoId === '2') {
+                    if(byteAspecto2Maze) byteAspecto2Maze.classList.add('visible');
+                }
+                if(dialogueBubble) dialogueBubble.classList.add('visible');
+                
+                const textPart1 = "Podrás descubrir datos muy interesantes mientras recorrés este laberinto. ";
+                startTypewriter(dialogueText, textPart1, () => {
+                    setTimeout(() => {
+                        const textPart2 = "¡Pero si no juntás todas las estrellas, no vas a poder completarlo!";
+                        startTypewriter(dialogueText, textPart2, () => {
+                            setTimeout(() => {
+                                const textPart3 = "No te preocupes, siempre voy a estar para ayudarte!";
+                                startTypewriter(dialogueText, textPart3, () => {
+                                    setTimeout(() => {
+                                        if(byteAspecto1Maze) byteAspecto1Maze.classList.remove('visible');
+                                        if(byteAspecto2Maze) byteAspecto2Maze.classList.remove('visible');
+                                        if(dialogueBubble) dialogueBubble.classList.remove('visible');
+                                        juegoPausado = false;
+                                    }, 500); 
+                                });
+                            }, 400); 
+                        });
+                    }, 400); 
+                });
+            }, 500); 
+            
+
+            // --- LÓGICA DE TECLADO ---
+            document.addEventListener('keydown', (event) => {
+                
+                if (juegoPausado) {
+                    if (event.key === "Escape") {
+                        // --- ¡MODIFICADO! ---
+                        if (dialogoFinalActivo) {
+                            // Regresa a desktop, avisando qué aspecto tenía
+                            window.location.href = `desktop.html?return=true&aspecto=${aspectoId}`;
+                        } else {
+                            ocultarPopups();
+                        }
+                    } else if (event.key === "+" || event.key === "=") {
+                        // Tecla + para volver desde el diálogo final
+                        if (dialogoFinalActivo) {
+                            window.location.href = `desktop.html?return=true&aspecto=${aspectoId}`;
+                        }
+                    }
+                    return;
+                }
+                
+                let proximaFila = jugadorPos.fila;
+                let proximaCol = jugadorPos.col;
+
+                switch(event.key) {
+                    case "ArrowUp": proximaFila--; break;
+                    case "ArrowDown": proximaFila++; break;
+                    case "ArrowLeft": proximaCol--; break;
+                    case "ArrowRight": proximaCol++; break;
+                    default: return;
+                }
+                
+                // 1. ¿Choca con Cubo de Ayuda?
+                let chocoConCuboAyuda = false;
+                helpCubos.forEach(cubo => {
+                    if (cubo.fila === proximaFila && cubo.col === proximaCol && !cubo.activado) {
+                        chocoConCuboAyuda = true;
+                        cubo.activado = true;
+                        document.getElementById(cubo.id).classList.add('activado');
+                        mostrarAyuda();
+                    }
+                });
+                if (chocoConCuboAyuda) return;
+
+                // 2. ¿Choca con la Salida (Bloques Temporales)?
+                let chocoConSalida = false;
+                let estaBloqueada = true;
+                bloquesTemporales.forEach(bloque => {
+                    if (bloque.fila === proximaFila && bloque.col === proximaCol) {
+                        chocoConSalida = true;
+                        if (bloque.desbloqueado) {
+                            estaBloqueada = false;
+                        }
+                    }
+                });
+
+                if (chocoConSalida) {
+                    if (estaBloqueada) {
+                        return; // Chocó contra la salida cerrada
+                    } else {
+                        // ¡Está desbloqueada! Mover al jugador Y mostrar diálogo.
+                        jugadorPos.fila = proximaFila;
+                        jugadorPos.col = proximaCol;
+                        actualizarPosicionVisual();
+                        mostrarDialogoFinal();
+                        return;
+                    }
+                }
+                
+                // 3. Si no, ¿es pared (1)?
+                let casillaFutura;
+                try {
+                    casillaFutura = mapaLaberinto[proximaFila][proximaCol];
+                } catch (e) {
+                    casillaFutura = 1;
+                }
+                if (casillaFutura === 1) return;
+
+                // 4. Si es pasillo (0) y no chocó con nada
+                if (casillaFutura === 0) {
+                    jugadorPos.fila = proximaFila;
+                    jugadorPos.col = proximaCol;
+                    actualizarPosicionVisual();
+                    verificarRecoleccion();
+                }
+            });
+            
+            // --- FUNCIONES DE ESTADO Y POSICIÓN ---
+            
+            function actualizarPosicionVisual() {
+                if (!jugadorImg || !mazeContainer) return;
+                const bordeIzquierdo = 2;
+                const bordeSuperior = 83;
+
+                jugadorImg.style.top = (jugadorPos.fila * TAMAÑO_BLOQUE) + bordeSuperior + 'px';
+                jugadorImg.style.left = (jugadorPos.col * TAMAÑO_BLOQUE) + bordeIzquierdo + 'px';
+
+                estrellas.forEach(estrella => {
+                    const elem = document.getElementById(estrella.id);
+                    if (elem && !estrella.recolectado) {
+                        elem.style.top = (estrella.fila * TAMAÑO_BLOQUE) + bordeSuperior + 'px';
+                        elem.style.left = (estrella.col * TAMAÑO_BLOQUE) + bordeIzquierdo + 'px';
+                    }
+                });
+                
+                libros.forEach(libro => {
+                    const elem = document.getElementById(libro.id);
+                    if (elem && !libro.recolectado) {
+                        elem.style.top = (libro.fila * TAMAÑO_BLOQUE) + bordeSuperior + 'px';
+                        elem.style.left = (libro.col * TAMAÑO_BLOQUE) + bordeIzquierdo + 'px';
+                    }
+                });
+                
+                helpCubos.forEach(cubo => {
+                    const elem = document.getElementById(cubo.id);
+                    if (elem) {
+                        elem.style.top = (cubo.fila * TAMAÑO_BLOQUE) + bordeSuperior + 'px';
+                        elem.style.left = (cubo.col * TAMAÑO_BLOQUE) + bordeIzquierdo + 'px';
+                    }
+                });
+                
+                bloquesTemporales.forEach(bloque => {
+                    const elem = document.getElementById(bloque.id);
+                    if (elem) {
+                        // Ocultar los bloques de la puerta (fila 0, cols 13-14)
+                        if (bloque.fila === 0 && (bloque.col === 13 || bloque.col === 14)) {
+                            elem.style.display = 'none';
+                        } else if (!bloque.desbloqueado) {
+                            elem.style.top = (bloque.fila * TAMAÑO_BLOQUE) + bordeSuperior + 'px';
+                            elem.style.left = (bloque.col * TAMAÑO_BLOQUE) + bordeIzquierdo + 'px';
+                            elem.style.display = 'block';
+                        }
+                    }
+                });
+                
+                // Posicionar la puerta
+                const puerta = document.getElementById('puerta');
+                if (puerta) {
+                    puerta.style.top = (0 * TAMAÑO_BLOQUE) + bordeSuperior + 'px';
+                    puerta.style.left = (13 * TAMAÑO_BLOQUE) + bordeIzquierdo + 'px';
+                }
+            }
+
+            function verificarRecoleccion() {
+                estrellas.forEach(estrella => {
+                    if (!estrella.recolectado && 
+                        jugadorPos.fila === estrella.fila && 
+                        jugadorPos.col === estrella.col) 
+                    {
+                        estrella.recolectado = true;
+                        document.getElementById(estrella.id).classList.add('recolectado');
+                        actualizarContador();
+                        verificarEstadoEstrellas();
+                    }
+                });
+
+                libros.forEach(libro => {
+                    if (!libro.recolectado && 
+                        jugadorPos.fila === libro.fila && 
+                        jugadorPos.col === libro.col) 
+                    {
+                        libro.recolectado = true;
+                        document.getElementById(libro.id).classList.add('recolectado');
+                        mostrarPopup(libro.id); 
+                    }
+                });
+                
+                helpCubos.forEach(trigger => {
+                    if (!trigger.activado &&
+                        jugadorPos.fila === trigger.fila &&
+                        jugadorPos.col === trigger.col)
+                    {
+                        trigger.activado = true;
+                        document.getElementById(trigger.id).classList.add('activado');
+                        mostrarAyuda();
+                    }
+                });
+            }
+
+            // --- Actualizar Contador ---
+            function actualizarContador() {
+                const estrellasRecolectadas = estrellas.filter(e => e.recolectado).length;
+                const contadorText = document.getElementById('contador-text');
+                if (contadorText) {
+                    contadorText.textContent = `${estrellasRecolectadas}/3`;
+                }
+            }
+
+            // --- Lógica de Popups y Estado ---
+            function verificarEstadoEstrellas() {
+                const todasRecolectadas = estrellas.every(estrella => estrella.recolectado);
+                if (todasRecolectadas) {
+                    console.log("¡Todas las estrellas! Desbloqueando...");
+                    bloquesTemporales.forEach(bloque => {
+                        if (!bloque.desbloqueado) {
+                            bloque.desbloqueado = true;
+                            document.getElementById(bloque.id).classList.add('desbloqueado');
+                        }
+                    });
+                    // Desaparecer la puerta
+                    const puerta = document.getElementById('puerta');
+                    if (puerta) {
+                        puerta.style.display = 'none';
+                    }
+                }
+            }
+
+            function mostrarPopup(libroId) {
+                juegoPausado = true; 
+                if (libroId === 'libro-1' && texto1) {
+                    texto1.style.display = 'block';
+                } else if (libroId === 'libro-2' && texto2) {
+                    texto2.style.display = 'block';
+                } else if (libroId === 'libro-3' && texto3) {
+                    texto3.style.display = 'block';
+                }
+            }
+            
+            function mostrarAyuda() {
+                juegoPausado = true;
+                if (aspectoId === '1') {
+                    if(byteAspecto1Maze) byteAspecto1Maze.classList.add('visible');
+                } else if (aspectoId === '2') {
+                    if(byteAspecto2Maze) byteAspecto2Maze.classList.add('visible');
+                }
+                
+                if (helpBubble && helpText) {
+                    helpText.textContent = "Tranquilo, estoy aqui para ayudarte! Es lo único que quiero con mí vida!";
+                    helpBubble.style.display = 'block';
+                }
+                
+                setTimeout(() => {
+                    ocultarPopups();
+                }, 1500); // 1.5 segundos
+            }
+            
+            // ¡NUEVA! Función para el diálogo final
+            function mostrarDialogoFinal() {
+                juegoPausado = true;
+                dialogoFinalActivo = true; // <-- Activa el modo "Salida"
+                
+                // Marcar el laberinto como completado
+                localStorage.setItem('laberinto_completado', 'true');
+                
+                if (aspectoId === '1') {
+                    if(byteAspecto1Maze) byteAspecto1Maze.classList.add('visible');
+                } else if (aspectoId === '2') {
+                    if(byteAspecto2Maze) byteAspecto2Maze.classList.add('visible');
+                }
+                
+                if (helpBubble && helpText) {
+                    helpText.textContent = "Hicimos un trabajo increíble… y aprendiste tanto. ¿Ves? Al final no necesitabas a nadie más que a mí. :).";
+                    helpBubble.style.display = 'block';
+                }
+            }
+
+            function ocultarPopups() {
+                // Solo oculta si NO es el diálogo final
+                if (dialogoFinalActivo) return; 
+
+                juegoPausado = false; 
+                if (texto1) texto1.style.display = 'none';
+                if (texto2) texto2.style.display = 'none';
+                if (texto3) texto3.style.display = 'none';
+                
+                if (byteAspecto1Maze) byteAspecto1Maze.classList.remove('visible');
+                if (byteAspecto2Maze) byteAspecto2Maze.classList.remove('visible');
+                if (helpBubble) helpBubble.style.display = 'none';
+            }
+            
+            // --- Funciones de Máquina de Escribir ---
+            function startTypewriter(textElement, text, onComplete) {
+                let i = 0;
+                if (!textElement) return;
+                textElement.innerHTML = ""; 
+                textElement.style.borderRight = '3px solid #000'; 
+                
+                function type() {
+                    if (i < text.length) {
+                        textElement.innerHTML += text.charAt(i);
+                        i++;
+                        setTimeout(type, 50); 
+                    } else {
+                        if (text !== textPart1) {
+                             textElement.style.borderRight = 'none';
+                        }
+                        if (onComplete) onComplete();
+                    }
+                }
+                const textPart1 = "Podrás descubrir datos muy interesantes mientras recorrés este laberinto. ";
+                type();
+            }
+
+        });
+    </script>
+
+</body>
+</html>

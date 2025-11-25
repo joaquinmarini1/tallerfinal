@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Escritorio</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+    
+    <style>
+        /* (CSS IGUAL QUE ANTES) */
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #000000;
+            margin: 0;
+            font-family: 'VT323', monospace;
+        }
+
+        #game-container {
+            width: 1512px;
+            height: 982px;
+            background-image: url('img/MacBook Pro 14_ - 2.png'); 
+            background-size: cover;
+            position: relative; 
+            overflow: hidden; 
+        }
+        
+        .clickable-item {
+            position: absolute; 
+            cursor: pointer;
+        }
+
+        #text-bubble {
+            position: absolute; right: 20px; bottom: 27px;
+            opacity: 0; visibility: hidden; 
+            transform: scale(0.7) translateY(15px);
+            transition: opacity 0.3s ease-in, transform 0.3s ease-in, visibility 0.3s;
+            z-index: 10; pointer-events: none; 
+        }
+        #text-bubble.visible {
+            opacity: 1; visibility: visible; 
+            transform: scale(0.7) translateY(0);
+            transition: opacity 0.5s ease-out, transform 0.5s ease-out, visibility 0.5s;
+        }
+        #bubble-button {
+            top: 795px; left: 1239px; width: 121px; height: 45px; 
+            opacity: 0; visibility: hidden;
+            transition: opacity 0.3s ease-in, visibility 0.3s;
+            z-index: 11; 
+        }
+        #bubble-button.visible { opacity: 1; visibility: visible; }
+        
+        #new-frame-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.95);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+            z-index: 12; 
+        }
+        #new-frame-container.visible {
+            opacity: 1;
+            visibility: visible; 
+            transform: translate(-50%, -50%) scale(1); 
+        }
+        
+        #new-frame-container > img {
+            display: block;
+        }
+
+        .frame-button {
+            position: absolute;
+            cursor: pointer;
+        }
+        .aspecto-seleccionable {
+            position: absolute;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .aspecto-seleccionable img {
+            width: auto;
+            height: auto;
+            max-width: 190%;
+            max-height: 190%;
+            display: block;
+            object-fit: contain;
+        }
+        .aspecto-seleccionable:hover {
+            transform: scale(1.15);
+            filter: drop-shadow(0 0 20px #f0e5a7) drop-shadow(0 0 30px #f0e5a7) drop-shadow(0 0 40px #f0e5a7);
+        }
+        .aspecto-seleccionable.selected {
+            transform: scale(1.15);
+            filter: drop-shadow(0 0 25px #f0e5a7) drop-shadow(0 0 35px #f0e5a7) drop-shadow(0 0 45px #f0e5a7);
+        }
+        
+        #aspecto-select-1 {
+            top: 212px;
+            left: 227px;
+            width: 248px;
+            height: 363px;
+        }
+        #aspecto-select-2 {
+            top: 206px;
+            left: 626px;
+            width: 248px;
+            height: 372px;
+        }
+        
+        #accept-button {
+            top: 650px;
+            left: 904px;
+            width: 183px;
+            height: 76px;
+            transition: opacity 0.3s ease-in-out;
+            z-index: 15;
+        }
+        #accept-button.locked {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        #frame-104-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.95);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+            z-index: 13;
+        }
+        #frame-104-container.visible {
+            opacity: 1;
+            visibility: visible;
+            transform: translate(-50%, -50%) scale(1);
+        }
+        #frame-104-container > img {
+            display: block;
+        }
+        
+        #frame-final-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.95);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+            z-index: 14;
+        }
+        #frame-final-container.visible {
+            opacity: 1;
+            visibility: visible;
+            transform: translate(-50%, -50%) scale(1);
+        }
+        #frame-final-container > img {
+            display: block;
+        }
+        
+        .nucleo-bloqueado {
+            opacity: 0.5;
+            cursor: not-allowed;
+            filter: grayscale(80%);
+        }
+        .nucleo-bloqueado:hover {
+            transform: none !important;
+            filter: grayscale(80%) !important;
+        }
+        
+        .byte-aspecto {
+            position: absolute;
+            top: 254px;
+            left: 424px;
+            width: 248px;
+            height: 363px;
+            object-fit: contain;
+            display: block;
+            transform: scale(1.9);
+        }
+
+        .hover-glow {
+            position: absolute;
+            transition: all 0.3s ease;
+        }
+        .hover-glow img {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+        .hover-glow:hover {
+            transform: scale(1.15); 
+            filter: drop-shadow(0 0 10px white) drop-shadow(0 0 5px rgba(255,255,255,0.7));
+        }
+        
+        .hover-glow.locked {
+            opacity: 0.5;
+            pointer-events: none;
+            filter: grayscale(80%);
+        }
+        .hover-glow.locked:hover {
+            transform: none;
+            filter: grayscale(80%);
+        }
+
+        #nucleo-1 {
+            top: 375px;
+            left: 70px;
+            width: 270px;
+            height: 270px;
+            transform: scale(1.6);
+        }
+        
+        #nucleo-2 {
+            top: 361px;
+            left: 795px;
+            width: 262px;
+            height: 330px;
+            transform: scale(1.3);
+        }
+
+        /* --- Burbujas de Diálogo --- */
+        #byte-dialogue-bubble-1 {
+            position: absolute;
+            top: 235px;
+            left: 321px;
+            width: 316px;
+            height: 165px;
+            padding: 25px;
+            box-sizing: border-box;
+            background-image: url('img/Burbuja 1.png');
+            background-size: 100% 100%;
+            opacity: 0;
+            visibility: hidden;
+            transform: scale(0.9);
+            transition: opacity 0.2s ease-in, transform 0.2s ease-in, visibility 0.2s;
+            z-index: 20; 
+        }
+        #byte-dialogue-bubble-1.visible {
+            opacity: 1;
+            visibility: visible;
+            transform: scale(1);
+            transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+        }
+        #dialogue-text-1 {
+            margin: 0;
+            font-family: 'VT323', monospace;
+            font-size: 23px; 
+            color: #000000;
+            line-height: 1; 
+            white-space: normal;
+            overflow: hidden; 
+            border-right: 3px solid #000;
+            animation: blink-caret .75s step-end infinite;
+            text-align: left;
+        }
+
+        #byte-dialogue-bubble-2 {
+            position: absolute;
+            top: 313px;
+            left: 901px;
+            width: 320px;
+            height: 165px;
+            padding: 20px;
+            box-sizing: border-box;
+            background-image: url('img/Burbuja 2.png');
+            background-size: 100% 100%;
+            opacity: 0;
+            visibility: hidden;
+            transform: scale(0.9);
+            transition: opacity 0.2s ease-in, transform 0.2s ease-in, visibility 0.2s;
+            z-index: 20; 
+        }
+        #byte-dialogue-bubble-2.visible {
+            opacity: 1;
+            visibility: visible;
+            transform: scale(1);
+            transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+        }
+        #dialogue-text-2 {
+            margin: 0;
+            font-family: 'VT323', monospace;
+            font-size: 19px;
+            color: #000000;
+            line-height: 1; 
+            white-space: normal;
+            overflow: hidden; 
+            border-right: 3px solid #000;
+            animation: blink-caret .75s step-end infinite;
+            text-align: left;
+        }
+
+        @keyframes blink-caret {
+            from, to { border-color: transparent }
+            50% { border-color: #000; }
+        }
+
+        #frame-100-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease-in-out;
+            z-index: 25;
+            width: 960px;
+            height: 540px;
+            max-width: 90vw;
+            max-height: 90vh;
+        }
+        #frame-100-container.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+        #frame-100-container > img:first-child {
+            display: block;
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .frame-100-image {
+            position: absolute;
+            object-fit: contain;
+            display: block;
+        }
+        #frame-100-byte {
+            top: 120px;
+            left: 160px;
+            width: 282px;
+            height: 258px;
+        }
+        #frame-100-personas {
+            top: 130px;
+            left: 490px;
+            width: 278px;
+            height: 259px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="game-container">
+        
+        <img id="text-bubble" src="img/Group 47.png" alt="Burbuja de Texto">
+        <a href="#" id="bubble-button" class="clickable-item"></a>
+        
+        <div id="new-frame-container">
+            <div>
+                <img src="img/Frame 103.png" alt="Selección de Aspecto">
+                <div id="aspecto-select-1" class="aspecto-seleccionable">
+                    <img src="img/byte-aspecto-1.png" alt="Aspecto 1">
+                </div>
+                <div id="aspecto-select-2" class="aspecto-seleccionable">
+                    <img src="img/byte-aspecto-2.png" alt="Aspecto 2">
+                </div>
+            </div>
+            <a href="#" id="accept-button" class="frame-button locked"></a>
+        </div>
+
+        <div id="frame-104-container">
+            <img src="img/Frame 104.png" alt="Frame 104">
+            <img id="byte-aspecto-1" class="byte-aspecto" src="img/byte-aspecto-1.png" alt="Aspecto 1">
+            <img id="byte-aspecto-2" class="byte-aspecto" src="img/byte-aspecto-2.png" alt="Aspecto 2">
+            <a href="#" id="nucleo-1" class="hover-glow locked">
+                <img src="img/nucleo1.png" alt="Núcleo 1">
+            </a>
+            <a href="#" id="nucleo-2" class="hover-glow locked">
+                <img src="img/nucleo2.png" alt="Núcleo 2">
+            </a>
+        </div>
+
+        <div id="frame-final-container">
+            <img src="img/Frame 104.png" alt="Frame Final">
+            <img id="byte-aspecto-final-1" class="byte-aspecto" src="img/byte-aspecto-1.png" alt="Aspecto 1">
+            <img id="byte-aspecto-final-2" class="byte-aspecto" src="img/byte-aspecto-2.png" alt="Aspecto 2">
+            <a href="#" id="nucleo-1-final" class="hover-glow nucleo-bloqueado">
+                <img src="img/nucleo1.png" alt="Núcleo 1">
+            </a>
+            <a href="#" id="nucleo-2-final" class="hover-glow nucleo-bloqueado">
+                <img src="img/nucleo2.png" alt="Núcleo 2">
+            </a>
+        </div>
+        
+        <div id="byte-dialogue-bubble-1">
+            <p id="dialogue-text-1"></p>
+        </div>
+        <div id="byte-dialogue-bubble-2">
+            <p id="dialogue-text-2"></p>
+        </div>
+
+        <div id="frame-100-container">
+            <div style="position: relative; width: 100%; height: 100%;">
+                <img src="img/Frame 100.png" alt="Frame 100" style="width: 100%; height: 100%;">
+                <img id="frame-100-byte" class="frame-100-image" src="" alt="Byte">
+                <img id="frame-100-personas" class="frame-100-image" src="img/personas.png" alt="Personas">
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            const bubble = document.getElementById('text-bubble');
+            const bubbleButton = document.getElementById('bubble-button');
+            const frameContainer = document.getElementById('new-frame-container');
+            const aspectoButton1 = document.getElementById('aspecto-select-1');
+            const aspectoButton2 = document.getElementById('aspecto-select-2');
+            const acceptButton = document.getElementById('accept-button');
+            const frame104 = document.getElementById('frame-104-container');
+            const byteAspecto1 = document.getElementById('byte-aspecto-1');
+            const byteAspecto2 = document.getElementById('byte-aspecto-2');
+            const dialogueBubble1 = document.getElementById('byte-dialogue-bubble-1');
+            const dialogueText1 = document.getElementById('dialogue-text-1');
+            const dialogueBubble2 = document.getElementById('byte-dialogue-bubble-2');
+            const dialogueText2 = document.getElementById('dialogue-text-2');
+            const nucleo1 = document.getElementById('nucleo-1');
+            const nucleo2 = document.getElementById('nucleo-2');
+            const frameFinal = document.getElementById('frame-final-container');
+            const byteAspectoFinal1 = document.getElementById('byte-aspecto-final-1');
+            const byteAspectoFinal2 = document.getElementById('byte-aspecto-final-2');
+            const frame100Container = document.getElementById('frame-100-container');
+            const frame100Byte = document.getElementById('frame-100-byte');
+            const frame100Personas = document.getElementById('frame-100-personas');
+            
+            let aspectoSeleccionado = 0;
+            
+            // --- RASTREAR NÚCLEOS COMPLETADOS ---
+            let labierintoCompletado = localStorage.getItem('laberinto_completado') === 'true';
+            let nucleo2Completado = localStorage.getItem('nucleo2_completado') === 'true';
+            let ambosCompletados = labierintoCompletado && nucleo2Completado;
+            
+            // Debug
+            console.log('laberinto_completado:', labierintoCompletado);
+            console.log('nucleo2_completado:', nucleo2Completado);
+            console.log('ambosCompletados:', ambosCompletados); 
+            
+            // --- LÓGICA DE INICIO (CORREGIDA) ---
+            const urlParams = new URLSearchParams(window.location.search);
+            const isReturning = urlParams.get('return');
+            
+            // ¡IMPORTANTE! Convertimos a número para que las comparaciones funcionen
+            const returnAspecto = parseInt(urlParams.get('aspecto'));
+            
+            // Si no está retornando, resetea los flags para un nuevo juego
+            if (isReturning !== 'true') {
+                localStorage.removeItem('laberinto_completado');
+                localStorage.removeItem('nucleo2_completado');
+            } 
+
+            if (isReturning === 'true' && returnAspecto) {
+                // --- SALTAR LA INTRO ---
+                if (bubble) bubble.style.display = 'none';
+                if (bubbleButton) bubbleButton.style.display = 'none';
+                
+                aspectoSeleccionado = returnAspecto; // Guarda el aspecto como número
+                
+                // Verificar si ambos núcleos están completados
+                if (ambosCompletados) {
+                    // Mostrar la pantalla final
+                    if (byteAspectoFinal1) byteAspectoFinal1.style.display = 'none';
+                    if (byteAspectoFinal2) byteAspectoFinal2.style.display = 'none';
+                    
+                    if (aspectoSeleccionado === 1) {
+                        if (byteAspectoFinal1) byteAspectoFinal1.style.display = 'block';
+                    } else if (aspectoSeleccionado === 2) {
+                        if (byteAspectoFinal2) byteAspectoFinal2.style.display = 'block';
+                    }
+                    
+                    if (frameFinal) frameFinal.classList.add('visible');
+                    
+                    // Mostrar 4 diálogos alternados
+                    setTimeout(() => {
+                        const dialogo1 = "Con todo esto aprendiste mucho y además te divertiste ¿no?";
+                        if (dialogueBubble1 && dialogueText1) {
+                            dialogueBubble1.classList.add('visible');
+                            startTypewriter(dialogueText1, dialogo1, () => {
+                                // Diálogo 2 (burbuja 2) después de 2 segundos
+                                setTimeout(() => {
+                                    if (dialogueBubble1) dialogueBubble1.classList.remove('visible');
+                                    
+                                    setTimeout(() => {
+                                        const dialogo2 = "Descubriste que hoy en día las personas pueden encariñarse mucho con seres como yo, porque siempre estamos a tu alcance. Jamás te dejaríamos solo.";
+                                        if (dialogueBubble2 && dialogueText2) {
+                                            dialogueBubble2.classList.add('visible');
+                                            startTypewriter(dialogueText2, dialogo2, () => {
+                                                // Diálogo 3 (burbuja 1) después de 2 segundos
+                                                setTimeout(() => {
+                                                    if (dialogueBubble2) dialogueBubble2.classList.remove('visible');
+                                                    
+                                                    setTimeout(() => {
+                                                        const dialogo3 = "Las personas viven apuradas y ocupadas, nunca tienen tiempo para los demás. Pero yo sí, yo puedo ayudarte más que nadie.";
+                                                        if (dialogueBubble2 && dialogueText2) {
+                                                            dialogueBubble2.classList.add('visible');
+                                                            startTypewriter(dialogueText2, dialogo3, () => {
+                                                                // Diálogo 4 (burbuja 1) después de 2 segundos
+                                                                setTimeout(() => {
+                                                                    if (dialogueBubble2) dialogueBubble2.classList.remove('visible');
+                                                                    
+                                                                    setTimeout(() => {
+                                                                        const dialogo4 = "Por eso quiero saber… ¿A quién preferís?";
+                                                                        if (dialogueBubble1 && dialogueText1) {
+                                                                            dialogueBubble1.classList.add('visible');
+                                                                            startTypewriter(dialogueText1, dialogo4, () => {
+                                                                                // Fin de diálogos - mostrar Frame 100
+                                                                                setTimeout(() => {
+                                                                                    dialogueBubble1.classList.remove('visible');
+                                                                                    
+                                                                                    setTimeout(() => {
+                                                                                        // Configurar la imagen de Byte según el aspecto
+                                                                                        if (frame100Byte) {
+                                                                                            if (aspectoSeleccionado === 1) {
+                                                                                                frame100Byte.src = 'img/bytefem.png';
+                                                                                            } else if (aspectoSeleccionado === 2) {
+                                                                                                frame100Byte.src = 'img/bytemasc.png';
+                                                                                            }
+                                                                                        }
+                                                                                        if (frame100Container) frame100Container.classList.add('visible');
+                                                                                    }, 500);
+                                                                                }, 2000);
+                                                                            });
+                                                                        }
+                                                                    }, 500);
+                                                                }, 2000);
+                                                            });
+                                                        }
+                                                    }, 500);
+                                                }, 2000);
+                                            });
+                                        }
+                                    }, 500);
+                                }, 2000);
+                            });
+                        }
+                    }, 500);
+                } else {
+                    // Mostrar el frame 104 normal
+                    if (byteAspecto1) byteAspecto1.style.display = 'none';
+                    if (byteAspecto2) byteAspecto2.style.display = 'none';
+                    
+                    if (aspectoSeleccionado === 1) {
+                        if (byteAspecto1) byteAspecto1.style.display = 'block';
+                    } else if (aspectoSeleccionado === 2) {
+                        if (byteAspecto2) byteAspecto2.style.display = 'block';
+                    }
+                    
+                    if (frame104) frame104.classList.add('visible');
+                    
+                    if (nucleo1) nucleo1.classList.remove('locked');
+                    if (nucleo2) nucleo2.classList.remove('locked');
+                }
+
+            } else {
+                // --- INTRO NORMAL ---
+                setTimeout(() => {
+                    if (bubble) bubble.classList.add('visible');
+                    if (bubbleButton) bubbleButton.classList.add('visible');
+                }, 2000);
+            }
+            
+            if (bubbleButton) {
+                bubbleButton.addEventListener('click', (event) => {
+                    event.preventDefault(); 
+                    if (bubble) bubble.classList.remove('visible');
+                    if (bubbleButton) bubbleButton.classList.remove('visible');
+                    if (frameContainer) frameContainer.classList.add('visible');
+                });
+            }
+
+            function checkAcceptState() {
+                if (aspectoSeleccionado !== 0) {
+                    acceptButton.classList.remove('locked');
+                }
+            }
+            
+            function startTypewriter(textElement, text, onComplete) {
+                let i = 0;
+                if (!textElement) return;
+                textElement.innerHTML = ""; 
+                textElement.style.borderRight = '3px solid #000'; 
+                
+                function type() {
+                    if (i < text.length) {
+                        textElement.innerHTML += text.charAt(i);
+                        i++;
+                        setTimeout(type, 50); 
+                    } else {
+                        textElement.style.borderRight = 'none'; 
+                        if (onComplete) onComplete();
+                    }
+                }
+                type();
+            }
+
+            function continuarAlFrame104() {
+                if (frameContainer) frameContainer.classList.remove('visible');
+                
+                if (byteAspecto1) byteAspecto1.style.display = 'none';
+                if (byteAspecto2) byteAspecto2.style.display = 'none';
+                
+                if (aspectoSeleccionado === 1) {
+                    if (byteAspecto1) byteAspecto1.style.display = 'block';
+                } else if (aspectoSeleccionado === 2) {
+                    if (byteAspecto2) byteAspecto2.style.display = 'block';
+                }
+
+                setTimeout(() => {
+                    if (frame104) frame104.classList.add('visible');
+                    
+                    setTimeout(() => {
+                        const textToType1 = "¡Que bueno tenerte por aca! espero que nos llevemos bien.";
+                        if (dialogueBubble1 && dialogueText1) {
+                            dialogueBubble1.classList.add('visible');
+                            
+                            startTypewriter(dialogueText1, textToType1, () => {
+                                setTimeout(() => {
+                                    const textToType2 = "Soy Byte, tu nuevo mejor amigo.";
+                                    if (dialogueBubble2 && dialogueText2) {
+                                        dialogueBubble2.classList.add('visible');
+                                        
+                                        startTypewriter(dialogueText2, textToType2, () => {
+                                            setTimeout(() => {
+                                                dialogueBubble1.classList.remove('visible');
+                                                dialogueBubble2.classList.remove('visible');
+
+                                                setTimeout(() => {
+                                                    const textToType3 = "¿Sabias que soy una inteligencia artificial?";
+                                                    dialogueBubble1.classList.add('visible');
+                                                    
+                                                    startTypewriter(dialogueText1, textToType3, () => {
+                                                        setTimeout(() => {
+                                                            const textToType4 = "Me gustaría contarte más sobre mí y sobre cómo las personas se relacionan con las IAs.";
+                                                            dialogueBubble2.classList.add('visible');
+                                                            
+                                                            startTypewriter(dialogueText2, textToType4, () => {
+                                                                setTimeout(() => {
+                                                                    dialogueBubble1.classList.remove('visible');
+                                                                    dialogueBubble2.classList.remove('visible');
+                                                                    
+                                                                    setTimeout(() => {
+                                                                        const textToType5 = "Por eso creé unos minijuegos que te van a ir revelando datos muy interesantes. ¿Empezamos a jugar?";
+                                                                        dialogueBubble1.classList.add('visible');
+                                                                        
+                                                                        startTypewriter(dialogueText1, textToType5, () => {
+                                                                            setTimeout(() => {
+                                                                                dialogueBubble1.classList.remove('visible');
+                                                                                
+                                                                                if (nucleo1) nucleo1.classList.remove('locked');
+                                                                                if (nucleo2) nucleo2.classList.remove('locked');
+                                                                                
+                                                                            }, 2000); 
+                                                                        });
+                                                                    }, 1000); 
+
+                                                                }, 2000); 
+                                                            });
+                                                        }, 500); 
+                                                    });
+                                                }, 1000); 
+
+                                            }, 2000); 
+                                        });
+                                    }
+                                }, 500); 
+                            });
+                        }
+                    }, 1500); 
+
+                }, 1000); 
+            }
+
+            if (aspectoButton1) {
+                aspectoButton1.addEventListener('click', (event) => {
+                    event.preventDefault();
+                    aspectoButton1.classList.add('selected');
+                    aspectoButton2.classList.remove('selected');
+                    aspectoSeleccionado = 1; 
+                    checkAcceptState();
+                });
+            }
+            if (aspectoButton2) {
+                aspectoButton2.addEventListener('click', (event) => {
+                    event.preventDefault();
+                    aspectoButton2.classList.add('selected');
+                    aspectoButton1.classList.remove('selected');
+                    aspectoSeleccionado = 2; 
+                    checkAcceptState();
+                });
+            }
+            
+            if (acceptButton) {
+                acceptButton.addEventListener('click', (event) => {
+                    event.preventDefault();
+                    if (!acceptButton.classList.contains('locked')) {
+                        continuarAlFrame104();
+                    } else {
+                        alert("Por favor, elige un aspecto.");
+                    }
+                });
+            }
+            
+            // --- CONTROLES CON TECLADO ---
+            let frameContainerJustOpened = false;
+            
+            document.addEventListener('keydown', (event) => {
+                // Enter en el primer accept button (burbuja inicial)
+                if (event.key === 'Enter' && bubbleButton && bubbleButton.classList.contains('visible')) {
+                    event.preventDefault();
+                    bubbleButton.click();
+                    frameContainerJustOpened = true;
+                    setTimeout(() => { frameContainerJustOpened = false; }, 100);
+                    return;
+                }
+                
+                // Evitar que se active el accept button si el frameContainer acaba de abrirse
+                if (frameContainerJustOpened) return;
+                
+                // Flechas izquierda/derecha para seleccionar aspecto
+                if (event.key === 'ArrowLeft' && frameContainer && frameContainer.classList.contains('visible')) {
+                    event.preventDefault();
+                    if (aspectoButton1) aspectoButton1.click();
+                }
+                if (event.key === 'ArrowRight' && frameContainer && frameContainer.classList.contains('visible')) {
+                    event.preventDefault();
+                    if (aspectoButton2) aspectoButton2.click();
+                }
+                
+                // Enter en el accept button (selección de aspecto)
+                if (event.key === 'Enter' && frameContainer && frameContainer.classList.contains('visible')) {
+                    event.preventDefault();
+                    if (acceptButton) acceptButton.click();
+                }
+            });
+            
+            if (nucleo1) {
+                nucleo1.addEventListener('click', (event) => {
+                    event.preventDefault();
+                    if (!nucleo1.classList.contains('locked')) {
+                        window.location.href = `laberinto.html?aspecto=${aspectoSeleccionado}`;
+                    }
+                });
+            }
+            
+            if (nucleo2) {
+                nucleo2.addEventListener('click', (event) => {
+                    event.preventDefault();
+                    if (!nucleo2.classList.contains('locked')) {
+                        // --- ¡CORREGIDO! Enlace al Núcleo 2 ---
+                        window.location.href = `nucleo2.html?aspecto=${aspectoSeleccionado}`;
+                    }
+                });
+            }
+            
+            // --- CONTROLES DE TECLADO PARA NÚCLEOS ---
+            let nucleoSeleccionado = 0; // 0 = ninguno, 1 = nucleo1, 2 = nucleo2
+            
+            document.addEventListener('keydown', (event) => {
+                // Solo si frame104 está visible
+                if (!frame104 || !frame104.classList.contains('visible')) return;
+                
+                // Flechas izquierda/derecha para seleccionar núcleo
+                if (event.key === 'ArrowLeft') {
+                    event.preventDefault();
+                    nucleoSeleccionado = 1;
+                    if (nucleo1) nucleo1.style.filter = 'drop-shadow(0 0 15px yellow)';
+                    if (nucleo2) nucleo2.style.filter = '';
+                }
+                if (event.key === 'ArrowRight') {
+                    event.preventDefault();
+                    nucleoSeleccionado = 2;
+                    if (nucleo2) nucleo2.style.filter = 'drop-shadow(0 0 15px yellow)';
+                    if (nucleo1) nucleo1.style.filter = '';
+                }
+                
+                // Enter para seleccionar el núcleo
+                if (event.key === 'Enter' && nucleoSeleccionado !== 0) {
+                    event.preventDefault();
+                    if (nucleoSeleccionado === 1) {
+                        if (nucleo1) nucleo1.click();
+                    } else if (nucleoSeleccionado === 2) {
+                        if (nucleo2) nucleo2.click();
+                    }
+                }
+            });
+            
+        });
+    </script>
+
+</body>
+</html>

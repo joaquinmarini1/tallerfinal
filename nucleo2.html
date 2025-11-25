@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Núcleo 2</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #000000;
+            margin: 0;
+            font-family: 'VT323', monospace;
+        }
+
+        #game-container {
+            width: 1512px;
+            height: 982px;
+            background-image: url('img/MacBook Pro 14_ - 2.png'); 
+            background-size: cover;
+            position: relative; 
+            overflow: hidden; 
+        }
+
+        /* Frame 2 Centrado */
+        #nucleo2-frame-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 0;
+        }
+        #nucleo2-frame-container img { display: block; }
+        
+        /* Libro Cerrado */
+        #libro-contenedor {
+            position: absolute;
+            top: 218px;
+            left: 697px;
+            width: 587px;
+            height: 631px; 
+            overflow: hidden; 
+            z-index: 5; 
+            transition: opacity 0.5s ease-out; 
+        }
+        #libro-cerrado { position: absolute; top: 0; left: 0; width: 587px; height: 648px; }
+
+        /* Libro Abierto */
+        #libro-abierto {
+            position: absolute;
+            top: 230px; 
+            left: 1600px; 
+            width: 984px;
+            height: 619px;
+            opacity: 0;
+            z-index: 6; 
+            transition: left 1s ease-out, opacity 1s ease-out; 
+        }
+        #libro-abierto.visible {
+            left: 267px; 
+            opacity: 1; 
+        }
+        
+        /* Base de los Post-its */
+        #base-postits {
+            position: absolute;
+            top: 562px; 
+            left: 388px;
+            width: 754px;
+            height: 232px;
+            z-index: 7; 
+            
+            background-image: url('img/base.png'); 
+            background-size: 100% 100%;
+            background-repeat: no-repeat;
+            
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.5s ease-in;
+            
+            display: flex; 
+            justify-content: space-around; 
+            align-items: center;
+            padding: 0 40px;
+            box-sizing: border-box;
+        }
+        #base-postits.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Estilos para los Post-its */
+        .post-it-container {
+            position: relative; 
+            width: 180px; 
+            height: 180px; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: transform 0.2s ease-in-out, filter 0.2s ease-in-out;
+        }
+        .post-it-container img {
+            width: 100%;
+            height: 100%;
+            position: absolute; 
+            top: 0;
+            left: 0;
+            scale: 1.2;
+        }
+        .post-it-container.selected {
+            transform: scale(1.1); 
+            filter: drop-shadow(0 0 10px rgba(255, 255, 243, 0.8)); 
+            z-index: 10; 
+        }
+        .post-it-text {
+            font-size: 26px; 
+            color: #000000;
+            text-align: center;
+            position: relative;
+            z-index: 11; 
+            padding: 15px;
+            line-height: 1.1;
+            margin: 0;
+        }
+
+        /* Estilos para las Preguntas */
+        .pregunta-texto {
+            position: absolute;
+            z-index: 8;
+            font-size: 30px; 
+            color: #000000;
+            line-height: 1.3;
+            text-align: center;
+            display: flex; 
+            justify-content: center;
+            align-items: center;
+            padding: 25px;
+            box-sizing: border-box;
+            
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease-in-out;
+            pointer-events: none; 
+        }
+        .pregunta-texto.activa {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Posiciones de Preguntas */
+        #pregunta-1, #pregunta-3 {
+            top: 307px;
+            left: 439px;
+            width: 224px;
+            height: 228px;
+        }
+        #pregunta-2, #pregunta-4 {
+            top: 307px;
+            left: 849px; 
+            width: 224px;
+            height: 228px;
+        }
+
+        /* Byte y Burbujota */
+        .byte-nucleo2 {
+            position: absolute;
+            top: 343px;
+            left: 291px;
+            width: 287px;
+            height: 385px;
+            z-index: 20;
+            display: none; 
+            transition: opacity 0.5s ease-out;
+            object-fit: contain;
+            transform: scale(1.5);
+        }
+
+        #burbujota {
+            position: absolute;
+            top: 213px;
+            left: 586px;
+            width: 482px;
+            height: 219px;
+            padding: 35px 45px; 
+            box-sizing: border-box;
+            background-image: url('img/burbujota.png');
+            background-size: 100% 100%;
+            background-repeat: no-repeat;
+            z-index: 30;
+            display: none; 
+            transition: opacity 0.5s ease-out;
+        }
+
+        #dialogue-text {
+            margin: 0;
+            font-size: 26px;
+            color: #000000;
+            line-height: 1.2;
+            white-space: normal;
+            overflow: hidden; 
+            border-right: 3px solid #000;
+            animation: blink-caret .75s step-end infinite;
+        }
+
+        /* --- ¡NUEVO! Estilos para el Final (Byte Derecha) --- */
+        .byte-final {
+            position: absolute;
+            /* Coords: 883,370,1149,804 */
+            top: 370px;
+            left: 830px;
+            width: 287px;
+            height: 385px;
+            z-index: 50;
+            object-fit: contain;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateX(100px) scale(1.5);
+            transition: all 0.5s ease-out;
+        }
+        .byte-final.visible {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(0) scale(1.5);
+        }
+
+        /* --- ¡NUEVO! Burbuja Final --- */
+        #burbuja-final {
+            position: absolute;
+            /* Coords: 498,211,824,409 */
+            top: 211px;
+            left: 498px;
+            width: 326px; /* 824 - 498 */
+            height: 198px; /* 409 - 211 */
+            
+            padding: 30px;
+            box-sizing: border-box;
+            background-image: url('img/Burbuja 1.png'); 
+            background-size: 100% 100%;
+            background-repeat: no-repeat;
+            
+            z-index: 51;
+            opacity: 0;
+            visibility: hidden;
+            transform: scale(0.9);
+            transition: all 0.3s ease-out;
+        }
+        #burbuja-final.visible {
+            opacity: 1;
+            visibility: visible;
+            transform: scale(1);
+        }
+        
+        #texto-final {
+            margin: 0;
+            font-size: 24px;
+            color: #000000;
+            line-height: 1.2;
+            border-right: 3px solid #000;
+            animation: blink-caret .75s step-end infinite;
+        }
+        
+        .fade-out { opacity: 0 !important; pointer-events: none !important; }
+        @keyframes blink-caret { from, to { border-color: transparent } 50% { border-color: #000; } }
+
+    </style>
+</head>
+<body>
+
+    <div id="game-container">
+        
+        <div id="nucleo2-frame-container">
+            <img src="img/frame2.png" alt="Núcleo 2">
+        </div>
+        
+        <img id="libro-abierto" src="img/libroabierto.png" alt="Libro Abierto">
+        
+        <div id="base-postits">
+            <div id="postit-1-container" class="post-it-container">
+                <img src="img/post1.png" alt="Post-it 1">
+                <p class="post-it-text" id="postit-text-1"></p>
+            </div>
+            <div id="postit-2-container" class="post-it-container">
+                <img src="img/post2.png" alt="Post-it 2">
+                <p class="post-it-text" id="postit-text-2"></p>
+            </div>
+            <div id="postit-3-container" class="post-it-container">
+                <img src="img/post3.png" alt="Post-it 3">
+                <p class="post-it-text" id="postit-text-3"></p>
+            </div>
+        </div>
+
+        <div id="libro-contenedor">
+            <img id="libro-cerrado" src="img/librocerrado.png" alt="Libro Cerrado">
+        </div>
+        
+        <img id="byte-1" class="byte-nucleo2" src="img/byte-aspecto-1.png" alt="Byte 1">
+        <img id="byte-2" class="byte-nucleo2" src="img/byte-aspecto-2.png" alt="Byte 2">
+        
+        <div id="burbujota">
+            <p id="dialogue-text"></p>
+        </div>
+
+        <div id="pregunta-1" class="pregunta-texto"></div>
+        <div id="pregunta-2" class="pregunta-texto"></div>
+        <div id="pregunta-3" class="pregunta-texto"></div>
+        <div id="pregunta-4" class="pregunta-texto"></div>
+
+        <img id="byte-final-1" class="byte-final" src="img/byte-aspecto-1.png" alt="Byte Final 1">
+        <img id="byte-final-2" class="byte-final" src="img/byte-aspecto-2.png" alt="Byte Final 2">
+        
+        <div id="burbuja-final">
+            <p id="texto-final"></p>
+        </div>
+
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            const byte1 = document.getElementById('byte-1');
+            const byte2 = document.getElementById('byte-2');
+            const burbujota = document.getElementById('burbujota');
+            const dialogueText = document.getElementById('dialogue-text');
+            const libroContenedor = document.getElementById('libro-contenedor');
+            const libroAbierto = document.getElementById('libro-abierto');
+            
+            const basePostits = document.getElementById('base-postits');
+            const preguntaElements = [
+                document.getElementById('pregunta-1'), 
+                document.getElementById('pregunta-2'), 
+                document.getElementById('pregunta-3'), 
+                document.getElementById('pregunta-4')
+            ];
+            const postitContainers = [
+                document.getElementById('postit-1-container'),
+                document.getElementById('postit-2-container'),
+                document.getElementById('postit-3-container')
+            ];
+            const postitTextElements = [
+                document.getElementById('postit-text-1'),
+                document.getElementById('postit-text-2'),
+                document.getElementById('postit-text-3')
+            ];
+            
+            // Elementos del Final
+            const byteFinal1 = document.getElementById('byte-final-1');
+            const byteFinal2 = document.getElementById('byte-final-2');
+            const burbujaFinal = document.getElementById('burbuja-final');
+            const textoFinal = document.getElementById('texto-final');
+
+            const questionsData = [
+                {
+                    question: "Cuando estás aburrido ¿Con quién preferís pasar el tiempo?",
+                    answers: ["Mi familia", "Una IA", "Mis amigos"]
+                },
+                {
+                    question: "Cuando te sentís solo ¿Que te hace sentir mejor?",
+                    answers: ["Salir con amigos", "Hablar con una IA", "Charlar con Alguien"]
+                },
+                {
+                    question: "Si la IA notara que estás triste ¿Que esperás que haga?",
+                    answers: ["Que me recomiende buscar ayuda", "La IA no puede notarlo", "Que me acompañe"]
+                },
+                {
+                    question: "Si la IA te dijera que solo ella te entiende ¿Cómo reaccionarías?",
+                    answers: ["Al menos alguien me comprende", "No le daría importancia", "Me asustaría"]
+                }
+            ];
+            
+            let currentByteElement = null; 
+            let preguntaActualIndex = 0;
+            let selectedPostitIndex = 0;
+            let waitingForExit = false; // --- ¡NUEVO! Variable para controlar la salida
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const aspectoId = urlParams.get('aspecto');
+
+            if (aspectoId === '1') {
+                if (byte1) { byte1.style.display = 'block'; currentByteElement = byte1; }
+            } else if (aspectoId === '2') {
+                if (byte2) { byte2.style.display = 'block'; currentByteElement = byte2; }
+            } else {
+                if (byte1) { byte1.style.display = 'block'; currentByteElement = byte1; }
+            }
+            
+            // Secuencia Inicial
+            setTimeout(() => {
+                if (burbujota) burbujota.style.display = 'block';
+                const mensaje = "Te haré algunas preguntas para guardar en mi cuaderno. Verás varias respuestas en post-its: elegí la que prefieras. :)";
+                
+                startTypewriter(dialogueText, mensaje, () => {
+                    setTimeout(() => {
+                        if (currentByteElement) currentByteElement.classList.add('fade-out');
+                        if (burbujota) burbujota.classList.add('fade-out');
+                        
+                        setTimeout(() => {
+                            if (libroContenedor) libroContenedor.classList.add('fade-out');
+                            
+                            setTimeout(() => {
+                                if (libroAbierto) libroAbierto.classList.add('visible');
+                                
+                                setTimeout(() => {
+                                    if (basePostits) basePostits.classList.add('visible');
+                                    mostrarPregunta(preguntaActualIndex); 
+                                    seleccionarPostit(0); 
+                                }, 700);
+
+                            }, 500); 
+
+                        }, 1500); 
+
+                    }, 500); 
+                });
+            }, 1000); 
+
+            function mostrarPregunta(index) {
+                preguntaElements.forEach(p => p.classList.remove('activa'));
+                postitContainers.forEach(pc => pc.classList.remove('selected'));
+                postitTextElements.forEach(pt => pt.textContent = '');
+
+                if (questionsData[index]) {
+                    preguntaElements[index].textContent = questionsData[index].question;
+                    preguntaElements[index].classList.add('activa');
+
+                    questionsData[index].answers.forEach((answer, i) => {
+                        if (postitTextElements[i]) {
+                            postitTextElements[i].textContent = answer;
+                        }
+                    });
+                    seleccionarPostit(0); 
+                }
+            }
+            
+            function seleccionarPostit(index) {
+                postitContainers.forEach((pc, i) => {
+                    if (i === index) {
+                        pc.classList.add('selected');
+                    } else {
+                        pc.classList.remove('selected');
+                    }
+                });
+                selectedPostitIndex = index;
+            }
+
+            function responderPregunta() {
+                const respuestaElegida = questionsData[preguntaActualIndex].answers[selectedPostitIndex];
+                console.log(`Respuesta: ${respuestaElegida}`);
+                
+                preguntaActualIndex++;
+                if (preguntaActualIndex < questionsData.length) {
+                    mostrarPregunta(preguntaActualIndex);
+                } else {
+                    // Al terminar, iniciamos la secuencia final
+                    iniciarFinal();
+                }
+            }
+            
+            function iniciarFinal() {
+                // 1. Desvanecer lo actual
+                if (basePostits) basePostits.classList.add('fade-out');
+                preguntaElements.forEach(p => p.classList.add('fade-out'));
+                
+                setTimeout(() => {
+                    // 2. Mostrar el Byte Final (derecha)
+                    if (aspectoId === '1' && byteFinal1) byteFinal1.classList.add('visible');
+                    else if (aspectoId === '2' && byteFinal2) byteFinal2.classList.add('visible');
+                    else if (byteFinal1) byteFinal1.classList.add('visible');
+                    
+                    // 3. Mostrar la Burbuja Final
+                    if (burbujaFinal) burbujaFinal.classList.add('visible');
+                    
+                    // 4. Escribir Primer Texto
+                    const texto1 = "¡Que respuestas más interesantes! Pero veo que no confías mucho en mi...";
+                    startTypewriter(textoFinal, texto1, () => {
+                        
+                        // 5. Esperar un poco y escribir Segundo Texto
+                        setTimeout(() => {
+                            const texto2 = "¡Pero no pasa nada! Eso puede cambiar :)";
+                            startTypewriter(textoFinal, texto2, () => {
+                                
+                                // --- ¡MODIFICADO! ---
+                                // Marcar el núcleo 2 como completado
+                                localStorage.setItem('nucleo2_completado', 'true');
+                                
+                                // Ya no redirige solo. Habilita la salida con "+".
+                                waitingForExit = true;
+                                // Opcional: mostrar un indicador visual o simplemente esperar.
+                                
+                            });
+                        }, 2000); 
+                        
+                    });
+                    
+                }, 500); 
+            }
+
+            document.addEventListener('keydown', (event) => {
+                // --- ¡NUEVA LÓGICA PARA SALIR! ---
+                if (waitingForExit) {
+                    if (event.key === '+' || event.key === '=' || event.key === 'Escape') { // Acepta +, = y Escape
+                        window.location.href = `desktop.html?return=true&aspecto=${aspectoId}`;
+                    }
+                    return; // No procesar otras teclas si estamos esperando salir
+                }
+
+                if (basePostits.classList.contains('visible') && preguntaElements[preguntaActualIndex] && preguntaElements[preguntaActualIndex].classList.contains('activa')) {
+                    if (event.key === 'ArrowLeft') {
+                        event.preventDefault(); 
+                        selectedPostitIndex = (selectedPostitIndex - 1 + postitContainers.length) % postitContainers.length;
+                        seleccionarPostit(selectedPostitIndex);
+                    } else if (event.key === 'ArrowRight') {
+                        event.preventDefault(); 
+                        selectedPostitIndex = (selectedPostitIndex + 1) % postitContainers.length;
+                        seleccionarPostit(selectedPostitIndex);
+                    } else if (event.key === 'Enter') {
+                        event.preventDefault();
+                        responderPregunta();
+                    }
+                }
+            });
+
+            postitContainers.forEach((container, index) => {
+                container.addEventListener('click', () => {
+                    // Bloqueamos el click si ya terminó el cuestionario
+                    if (!waitingForExit && preguntaActualIndex < questionsData.length) {
+                        seleccionarPostit(index); 
+                        responderPregunta();
+                    }
+                });
+            });
+
+            function startTypewriter(textElement, text, onComplete) {
+                let i = 0;
+                if (!textElement) return;
+                textElement.innerHTML = ""; 
+                
+                function type() {
+                    if (i < text.length) {
+                        textElement.innerHTML += text.charAt(i);
+                        i++;
+                        setTimeout(type, 40); 
+                    } else {
+                        textElement.style.borderRight = 'none'; 
+                        if (onComplete) onComplete();
+                    }
+                }
+                type();
+            }
+            
+        });
+    </script>
+
+</body>
+</html>
